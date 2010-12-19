@@ -6,17 +6,29 @@
 package mygame.terrain.blocks;
 
 import com.jme3.asset.AssetManager;
+import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
+import com.jme3.scene.Geometry;
 
 /**
  *
  * @author joshcutler
  */
 public class DirtBlock extends TerrainBlock{
+
+    private static Material _dirty_material;
+
     public DirtBlock(String name, Vector3f center, AssetManager assetManager)
     {
-        super(name, center, assetManager);
-        material.setColor("m_Color", ColorRGBA.Brown);
+        super(assetManager);
+        if (DirtBlock._dirty_material == null)
+        {
+            DirtBlock._dirty_material = new Material(assetManager, "Common/MatDefs/Misc/SolidColor.j3md");
+            DirtBlock._dirty_material.setColor("m_Color", ColorRGBA.Brown);
+        }
+        geometry = new Geometry(name, box);
+        geometry.setMaterial(DirtBlock._dirty_material);
+        geometry.setLocalTranslation(center);
     }
 }

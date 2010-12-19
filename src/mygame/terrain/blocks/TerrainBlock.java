@@ -17,20 +17,19 @@ import com.jme3.scene.shape.Box;
  * @author joshcutler
  */
 public abstract class TerrainBlock {
-    protected Box box;
+    protected static Box box;
     protected Geometry geometry;
     protected Material material;
     private AssetManager _asset_manager;
     private boolean _selected = false;
-    
-    public TerrainBlock(String name, Vector3f center, AssetManager assetManager)
+
+    public TerrainBlock(AssetManager assetManager)
     {
         _asset_manager = assetManager;
-        box = new Box(center, 0.5f, 0.5f, 0.5f);
-        geometry = new Geometry(name, box);
-        material = new Material(assetManager, "Common/MatDefs/Misc/SolidColor.j3md");
-        material.setColor("m_Color", ColorRGBA.Gray);
-        geometry.setMaterial(material);
+        if (TerrainBlock.box == null)
+        {
+            box = new Box(Vector3f.ZERO, 0.5f, 0.5f, 0.5f);
+        }
     }
 
     public Geometry getBlockGeometry()

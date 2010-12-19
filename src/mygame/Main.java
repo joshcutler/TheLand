@@ -36,7 +36,12 @@ public class Main extends SimpleApplication {
     HashMap _terrain_blocks = new HashMap();
     int _day, _fps = 0;
     float _game_timer = 0;
+
     static final int SECONDS_PER_DAY = 10;
+    static final int BLOCK_REGION_SIZE = 25;
+
+    boolean _hud_enabled = false;
+
     BitmapText _hud_day;
     Geometry mark;
     TerrainBlock _highlighted;
@@ -59,29 +64,35 @@ public class Main extends SimpleApplication {
 
     private void initHUD()
     {
-        //Remove stats
-        statsView.removeFromParent();
+        if (_hud_enabled)
+        {
+            //Remove stats
+            statsView.removeFromParent();
 
-        //Background
-        _hud_day = new BitmapText(guiFont, false);
-        Box background = new Box(Vector3f.ZERO, settings.getWidth(), 80, 0);
-        Geometry geometry = new Geometry("Box", background);
-        Material material = new Material(assetManager, "Common/MatDefs/Misc/SolidColor.j3md");
-        material.setColor("m_Color", ColorRGBA.DarkGray);
-        geometry.setMaterial(material);
-        guiNode.attachChild(geometry);
+            //Background
+            _hud_day = new BitmapText(guiFont, false);
+            Box background = new Box(Vector3f.ZERO, settings.getWidth(), 80, 0);
+            Geometry geometry = new Geometry("Box", background);
+            Material material = new Material(assetManager, "Common/MatDefs/Misc/SolidColor.j3md");
+            material.setColor("m_Color", ColorRGBA.DarkGray);
+            geometry.setMaterial(material);
+            guiNode.attachChild(geometry);
 
-        //Calendar
-        _hud_day.setSize(guiFont.getCharSet().getRenderedSize());      // font size
-        _hud_day.setColor(ColorRGBA.White);                             // font color
-        _hud_day.setText("Day: " + _day);             // the text
-        _hud_day.setLocalTranslation(settings.getWidth() - 100, _hud_day.getLineHeight(), 0); // position
-        guiNode.attachChild(_hud_day);
+            //Calendar
+            _hud_day.setSize(guiFont.getCharSet().getRenderedSize());      // font size
+            _hud_day.setColor(ColorRGBA.White);                             // font color
+            _hud_day.setText("Day: " + _day);             // the text
+            _hud_day.setLocalTranslation(settings.getWidth() - 100, _hud_day.getLineHeight(), 0); // position
+            guiNode.attachChild(_hud_day);
+        }
     }
 
     private void updateHUD()
     {
-        _hud_day.setText("Day: " + _day);
+        if (_hud_enabled)
+        {
+            _hud_day.setText("Day: " + _day);
+        }
     }
 
     private void initCamera()
@@ -180,12 +191,231 @@ public class Main extends SimpleApplication {
         }
     };
 
-    private void initTerrain() {
+    private void updateTerrain()
+    {
+        //See if we need to draw any new terrains
+        Vector3f current_cam_location = cam.getLocation();
+        int current_block_x = (current_cam_location.x < 0) ? (((int)current_cam_location.x - BLOCK_REGION_SIZE)/BLOCK_REGION_SIZE)*BLOCK_REGION_SIZE : ((int)current_cam_location.x/BLOCK_REGION_SIZE)*BLOCK_REGION_SIZE;
+        int current_block_y = (current_cam_location.y < 0) ? (((int)current_cam_location.y - BLOCK_REGION_SIZE)/BLOCK_REGION_SIZE)*25 : ((int)current_cam_location.y/BLOCK_REGION_SIZE)*BLOCK_REGION_SIZE;
+
+        drawNewTerrain(current_block_x, current_block_y);
+        cullOldTerrain(current_block_x, current_block_y);
+    }
+
+    private void redrawTerrain(BlockRegion b)
+    {
+        _terrain_node.attachChild(b.getNode());
+        b.setDrawn(true);
+    }
+
+    private void cullTerrain(int offset_x, int offset_y)
+    {
+        String label = "block_" + offset_x + "_" + offset_y;
+        BlockRegion b1 = (BlockRegion) _terrain_blocks.get(label);
+        if (b1.isDrawn())
+        {
+            _terrain_node.detachChild(b1.getNode());
+            b1.setDrawn(false);
+        }
+    }
+
+    private void cullOldTerrain(int current_block_x, int current_block_y)
+    {
+        //Is the top one drawn?
+        if (_terrain_blocks.containsKey("block_" + current_block_x + "_" + (current_block_y + 2 * BLOCK_REGION_SIZE)))
+        {
+            cullTerrain(current_block_x, current_block_y + 2*BLOCK_REGION_SIZE);
+        }
+        //Is the bottom one drawn?
+        if (_terrain_blocks.containsKey("block_" + current_block_x + "_" + (current_block_y - 2 * BLOCK_REGION_SIZE)))
+        {
+            cullTerrain(current_block_x, current_block_y - 2*BLOCK_REGION_SIZE);
+        }
+        //Is the left one drawn?
+        if (_terrain_blocks.containsKey("block_" + (current_block_x - 2*BLOCK_REGION_SIZE) + "_" + current_block_y))
+        {
+            cullTerrain(current_block_x - 2*BLOCK_REGION_SIZE, current_block_y);
+        }
+        //Is the right one drawn?
+        if (_terrain_blocks.containsKey("block_" + (current_block_x + 2*BLOCK_REGION_SIZE) + "_" + current_block_y))
+        {
+            cullTerrain(current_block_x + 2*BLOCK_REGION_SIZE, current_block_y);
+        }
+
+        //Is the top-right one drawn?
+        if (_terrain_blocks.containsKey("block_" + (current_block_x + 2*BLOCK_REGION_SIZE) + "_" + (current_block_y + 1*BLOCK_REGION_SIZE)))
+        {
+            cullTerrain(current_block_x + 2*BLOCK_REGION_SIZE, current_block_y + 1*BLOCK_REGION_SIZE);
+        }
+        //Is the bottom-right one drawn?
+        if (_terrain_blocks.containsKey("block_" + (current_block_x + 2*BLOCK_REGION_SIZE) + "_" + (current_block_y - 1*BLOCK_REGION_SIZE)))
+        {
+            cullTerrain(current_block_x + 2*BLOCK_REGION_SIZE, current_block_y - 1*BLOCK_REGION_SIZE);
+        }
+        //Is the top-left one drawn?
+        if (_terrain_blocks.containsKey("block_" + (current_block_x - 2*BLOCK_REGION_SIZE) + "_" + (current_block_y + 1*BLOCK_REGION_SIZE)))
+        {
+            cullTerrain(current_block_x - 2*BLOCK_REGION_SIZE, current_block_y + 1*BLOCK_REGION_SIZE);
+        }
+         //Is the bottom-left one drawn?
+        if (_terrain_blocks.containsKey("block_" + (current_block_x - 2*BLOCK_REGION_SIZE) + "_" + (current_block_y - 1*BLOCK_REGION_SIZE)))
+        {
+            cullTerrain(current_block_x - 2*BLOCK_REGION_SIZE, current_block_y - 1*BLOCK_REGION_SIZE);
+        }
+        //Is the top-right one drawn?
+        if (_terrain_blocks.containsKey("block_" + (current_block_x + 1*BLOCK_REGION_SIZE) + "_" + (current_block_y + 2*BLOCK_REGION_SIZE)))
+        {
+            cullTerrain(current_block_x + 1*BLOCK_REGION_SIZE, current_block_y + 2*BLOCK_REGION_SIZE);
+        }
+        //Is the bottom-right one drawn?
+        if (_terrain_blocks.containsKey("block_" + (current_block_x + 1*BLOCK_REGION_SIZE) + "_" + (current_block_y - 2*BLOCK_REGION_SIZE)))
+        {
+            cullTerrain(current_block_x + 1*BLOCK_REGION_SIZE, current_block_y - 2*BLOCK_REGION_SIZE);
+        }
+        //Is the top-left one drawn?
+        if (_terrain_blocks.containsKey("block_" + (current_block_x - 1*BLOCK_REGION_SIZE) + "_" + (current_block_y + 2*BLOCK_REGION_SIZE)))
+        {
+            cullTerrain(current_block_x - 1*BLOCK_REGION_SIZE, current_block_y + 2*BLOCK_REGION_SIZE);
+        }
+         //Is the bottom-left one drawn?
+        if (_terrain_blocks.containsKey("block_" + (current_block_x - 1*BLOCK_REGION_SIZE) + "_" + (current_block_y - 2*BLOCK_REGION_SIZE)))
+        {
+            cullTerrain(current_block_x - 1*BLOCK_REGION_SIZE, current_block_y - 2*BLOCK_REGION_SIZE);
+        }
+    }
+
+    private void drawNewTerrain(int current_block_x, int current_block_y)
+    {
+        //Is the current one drawn?
+        if (!_terrain_blocks.containsKey("block_" + current_block_x + "_" + current_block_y))
+        {
+            buildTerrain(current_block_x, current_block_y);
+        }
+        else
+        {
+            BlockRegion b = ((BlockRegion)_terrain_blocks.get("block_" + current_block_x + "_" + current_block_y));
+            if (!b.isDrawn())
+            {
+                redrawTerrain(b);
+            }
+        }
+        //Is the top one drawn?
+        if (!_terrain_blocks.containsKey("block_" + current_block_x + "_" + (current_block_y + BLOCK_REGION_SIZE)))
+        {
+            buildTerrain(current_block_x, current_block_y + BLOCK_REGION_SIZE);
+        }
+        else
+        {
+            BlockRegion b = ((BlockRegion)_terrain_blocks.get("block_" + current_block_x + "_" + (current_block_y + BLOCK_REGION_SIZE)));
+            if (!b.isDrawn())
+            {
+                redrawTerrain(b);
+            }
+        }
+        //Is the bottom one drawn?
+        if (!_terrain_blocks.containsKey("block_" + current_block_x + "_" + (current_block_y - BLOCK_REGION_SIZE)))
+        {
+            buildTerrain(current_block_x, current_block_y - BLOCK_REGION_SIZE);
+        }
+        else
+        {
+            BlockRegion b = ((BlockRegion)_terrain_blocks.get("block_" + current_block_x + "_" + (current_block_y - BLOCK_REGION_SIZE)));
+            if (!b.isDrawn())
+            {
+                redrawTerrain(b);
+            }
+        }
+        //Is the left one drawn?
+        if (!_terrain_blocks.containsKey("block_" + (current_block_x - BLOCK_REGION_SIZE) + "_" + current_block_y))
+        {
+            buildTerrain(current_block_x - BLOCK_REGION_SIZE, current_block_y);
+        }
+        else
+        {
+            BlockRegion b = ((BlockRegion)_terrain_blocks.get("block_" + (current_block_x - BLOCK_REGION_SIZE) + "_" + current_block_y));
+            if (!b.isDrawn())
+            {
+                redrawTerrain(b);
+            }
+        }
+        //Is the right one drawn?
+        if (!_terrain_blocks.containsKey("block_" + (current_block_x + BLOCK_REGION_SIZE) + "_" + current_block_y))
+        {
+            buildTerrain(current_block_x + BLOCK_REGION_SIZE, current_block_y);
+        }
+        else
+        {
+            BlockRegion b = ((BlockRegion)_terrain_blocks.get("block_" + (current_block_x + BLOCK_REGION_SIZE) + "_" + current_block_y));
+            if (!b.isDrawn())
+            {
+                redrawTerrain(b);
+            }
+        }
+        //Is the top-right one drawn?
+        if (!_terrain_blocks.containsKey("block_" + (current_block_x + BLOCK_REGION_SIZE) + "_" + (current_block_y + BLOCK_REGION_SIZE)))
+        {
+            buildTerrain(current_block_x + BLOCK_REGION_SIZE, current_block_y + BLOCK_REGION_SIZE);
+        }
+        else
+        {
+            BlockRegion b = ((BlockRegion)_terrain_blocks.get("block_" + (current_block_x + BLOCK_REGION_SIZE) + "_" + (current_block_y + BLOCK_REGION_SIZE)));
+            if (!b.isDrawn())
+            {
+                redrawTerrain(b);
+            }
+        }
+        //Is the bottom-right one drawn?
+        if (!_terrain_blocks.containsKey("block_" + (current_block_x + BLOCK_REGION_SIZE) + "_" + (current_block_y - BLOCK_REGION_SIZE)))
+        {
+            buildTerrain(current_block_x + BLOCK_REGION_SIZE, current_block_y - BLOCK_REGION_SIZE);
+        }
+        else
+        {
+            BlockRegion b = ((BlockRegion)_terrain_blocks.get("block_" + (current_block_x + BLOCK_REGION_SIZE) + "_" + (current_block_y - BLOCK_REGION_SIZE)));
+            if (!b.isDrawn())
+            {
+                redrawTerrain(b);
+            }
+        }
+        //Is the top-left one drawn?
+        if (!_terrain_blocks.containsKey("block_" + (current_block_x - BLOCK_REGION_SIZE) + "_" + (current_block_y + BLOCK_REGION_SIZE)))
+        {
+            buildTerrain(current_block_x - BLOCK_REGION_SIZE, current_block_y + BLOCK_REGION_SIZE);
+        }
+        else
+        {
+            BlockRegion b = ((BlockRegion)_terrain_blocks.get("block_" + (current_block_x - BLOCK_REGION_SIZE) + "_" + (current_block_y + BLOCK_REGION_SIZE)));
+            if (!b.isDrawn())
+            {
+                redrawTerrain(b);
+            }
+        }
+         //Is the bottom-left one drawn?
+        if (!_terrain_blocks.containsKey("block_" + (current_block_x - BLOCK_REGION_SIZE) + "_" + (current_block_y - BLOCK_REGION_SIZE)))
+        {
+            buildTerrain(current_block_x - BLOCK_REGION_SIZE, current_block_y - BLOCK_REGION_SIZE);
+        }
+        else
+        {
+            BlockRegion b = ((BlockRegion)_terrain_blocks.get("block_" + (current_block_x - BLOCK_REGION_SIZE) + "_" + (current_block_y - BLOCK_REGION_SIZE)));
+            if (!b.isDrawn())
+            {
+                redrawTerrain(b);
+            }
+        }
+    }
+    private void buildTerrain(int offset_x, int offset_y) {
+        BlockRegion b1 = new BlockRegion(BLOCK_REGION_SIZE, offset_x, offset_y, new GrassyRegion(), _terrain, assetManager);
+        String label = "block_" + offset_x + "_" + offset_y;
+        _terrain_blocks.put(label, b1);
+        _terrain_node.attachChild(b1.getNode());
+        b1.setDrawn(true);
+    }
+
+    private void initTerrain()
+    {
         _terrain_node = new Node();
         rootNode.attachChild(_terrain_node);
-
-        BlockRegion b1 = new BlockRegion(25, new GrassyRegion(), _terrain, assetManager);
-        _terrain_node.attachChild(b1.getNode());
     }
 
     private CollisionResults getBlockCollisionFromMousePointer()
@@ -249,11 +479,12 @@ public class Main extends SimpleApplication {
         
         //Compute the day
         _day = ((int) Math.floor(_game_timer)) / SECONDS_PER_DAY;
-
+        //_day = _fps;
 
         rootNode.updateGeometricState();
-        handleMousePicking();
+        //handleMousePicking();
         updateHUD();
+        updateTerrain();
     }
 
     @Override
