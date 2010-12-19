@@ -27,8 +27,6 @@ public class DirtBlock extends TerrainBlock{
             DirtBlock._dirty_material = new Material(assetManager, "Common/MatDefs/Misc/SolidColor.j3md");
             DirtBlock._dirty_material.setColor("m_Color", ColorRGBA.Brown);
         }
-        geometry = new Geometry(name, box);
-        geometry.setMaterial(DirtBlock._dirty_material);
-        geometry.setLocalTranslation(center);
+        this.createBlockGeometry(name, center, DirtBlock._dirty_material);
     }
 }

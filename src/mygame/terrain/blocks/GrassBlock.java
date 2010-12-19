@@ -27,8 +27,6 @@ public class GrassBlock extends TerrainBlock {
             GrassBlock._grassy_material = new Material(assetManager, "Common/MatDefs/Misc/SolidColor.j3md");
             GrassBlock._grassy_material.setColor("m_Color", ColorRGBA.Green);
         }
-        geometry = new Geometry(name, box);
-        geometry.setMaterial(GrassBlock._grassy_material);
-        geometry.setLocalTranslation(center);
+        this.createBlockGeometry(name, center, GrassBlock._grassy_material);
     }
 }

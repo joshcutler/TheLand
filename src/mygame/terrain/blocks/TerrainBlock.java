@@ -32,6 +32,14 @@ public abstract class TerrainBlock {
         }
     }
 
+    protected void createBlockGeometry(String name, Vector3f center, Material material)
+    {
+        this.material = material;
+        geometry = new Geometry(name, box);
+        geometry.setMaterial(this.material);
+        geometry.setLocalTranslation(center);
+    }
+
     public Geometry getBlockGeometry()
     {
         return geometry;

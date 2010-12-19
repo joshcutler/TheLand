@@ -482,7 +482,7 @@ public class Main extends SimpleApplication {
         //_day = _fps;
 
         rootNode.updateGeometricState();
-        //handleMousePicking();
+        handleMousePicking();
         updateHUD();
         updateTerrain();
     }
