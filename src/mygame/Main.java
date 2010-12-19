@@ -13,18 +13,17 @@ import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
-import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
 import com.jme3.scene.debug.Arrow;
 import com.jme3.scene.shape.Box;
 import java.util.HashMap;
 import java.util.logging.Logger;
+import mygame.terrain.BlockRegion;
+import mygame.terrain.GrassyRegion;
 import mygame.terrain.blocks.TerrainBlock;
-import mygame.terrain.blocks.*;
 
 /**
  * test
@@ -34,6 +33,7 @@ public class Main extends SimpleApplication {
 
     Node _terrain_node;
     HashMap _terrain = new HashMap();
+    HashMap _terrain_blocks = new HashMap();
     int _day, _fps = 0;
     float _game_timer = 0;
     static final int SECONDS_PER_DAY = 10;
@@ -183,26 +183,9 @@ public class Main extends SimpleApplication {
     private void initTerrain() {
         _terrain_node = new Node();
         rootNode.attachChild(_terrain_node);
-        boolean grass = true;
-        for (int i = 0; i < 10; i++)
-        {
-            for (int j = 0; j < 11; j++)
-            {
-                TerrainBlock t;
-                String label = "block_" + i + "_" + j;
-                if (grass)
-                {
-                    t = new GrassBlock(label, new Vector3f(i, j, 0), assetManager);
-                    grass = false;
-                } else
-                {
-                    t = new DirtBlock(label, new Vector3f(i, j, 0), assetManager);
-                    grass = true;
-                }
-                _terrain.put(label, t);
-                _terrain_node.attachChild(t.getBlockGeometry());
-            }
-        }
+
+        BlockRegion b1 = new BlockRegion(25, new GrassyRegion(), _terrain, assetManager);
+        _terrain_node.attachChild(b1.getNode());
     }
 
     private CollisionResults getBlockCollisionFromMousePointer()
