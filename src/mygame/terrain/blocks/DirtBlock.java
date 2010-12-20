@@ -29,4 +29,9 @@ public class DirtBlock extends TerrainBlock{
         }
         this.createBlockGeometry(name, center, DirtBlock._dirty_material);
     }
+
+    public String getName()
+    {
+        return "DirtBlock";
+    }
 }

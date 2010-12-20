@@ -78,4 +78,6 @@ public abstract class TerrainBlock {
         _selected = false;
         geometry.setMaterial(material);
     }
+
+    public abstract String getName();
 }

@@ -29,4 +29,9 @@ public class GrassBlock extends TerrainBlock {
         }
         this.createBlockGeometry(name, center, GrassBlock._grassy_material);
     }
+
+    public String getName()
+    {
+        return "GrassBlock";
+    }
 }

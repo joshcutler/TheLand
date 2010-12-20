@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.logging.Logger;
 import mygame.terrain.BlockRegion;
 import mygame.terrain.GrassyRegion;
+import mygame.terrain.RegionType;
 import mygame.terrain.blocks.TerrainBlock;
 
 /**
@@ -405,7 +406,31 @@ public class Main extends SimpleApplication {
         }
     }
     private void buildTerrain(int offset_x, int offset_y) {
-        BlockRegion b1 = new BlockRegion(BLOCK_REGION_SIZE, offset_x, offset_y, new GrassyRegion(), _terrain, assetManager);
+        RegionType top = null, right = null, bottom = null, left = null;
+        //Is there a top one
+        if (_terrain_blocks.containsKey("block_" + offset_x + "_" + (offset_y + BLOCK_REGION_SIZE)))
+        {
+            top = ((BlockRegion) _terrain_blocks.get("block_" + offset_x + "_" + (offset_y + BLOCK_REGION_SIZE))).getRegion();
+        }
+        //Is there a bottom one
+        if (_terrain_blocks.containsKey("block_" + offset_x + "_" + (offset_y - BLOCK_REGION_SIZE)))
+        {
+            bottom = ((BlockRegion) _terrain_blocks.get("block_" + offset_x + "_" + (offset_y - BLOCK_REGION_SIZE))).getRegion();
+        }
+        //Is there a left one
+        if (_terrain_blocks.containsKey("block_" + (offset_x - BLOCK_REGION_SIZE) + "_" + offset_y))
+        {
+            left = ((BlockRegion) _terrain_blocks.get("block_" + (offset_x - BLOCK_REGION_SIZE) + "_" + offset_y)).getRegion();
+        }
+        //Is there a right one
+        if (_terrain_blocks.containsKey("block_" + (offset_x + BLOCK_REGION_SIZE) + "_" + offset_y))
+        {
+            right = ((BlockRegion) _terrain_blocks.get("block_" + (offset_x + BLOCK_REGION_SIZE) + "_" + offset_y)).getRegion();
+        }
+        
+        RegionType region_type = RegionType.getRegionType(top, right, bottom, left);
+
+        BlockRegion b1 = new BlockRegion(BLOCK_REGION_SIZE, offset_x, offset_y, region_type, _terrain, assetManager);
         String label = "block_" + offset_x + "_" + offset_y;
         _terrain_blocks.put(label, b1);
         _terrain_node.attachChild(b1.getNode());

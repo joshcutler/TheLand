@@ -18,7 +18,7 @@ import mygame.terrain.blocks.TerrainBlock;
 public class BlockRegion {
     private Node _node = new Node();
     private boolean _is_drawn = false;
-    RegionType _region;
+    private RegionType _region;
 
     public BlockRegion(int size, int offset_x, int offset_y, RegionType region, HashMap _terrain, AssetManager assetManager)
     {
@@ -52,6 +52,11 @@ public class BlockRegion {
                 _node.attachChild(t.getBlockGeometry());
             }
         }
+    }
+
+    public RegionType getRegion()
+    {
+        return _region;
     }
 
     public Node getNode()
