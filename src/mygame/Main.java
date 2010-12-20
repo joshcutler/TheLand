@@ -7,10 +7,13 @@ import com.jme3.font.BitmapText;
 import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
+import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
+import com.jme3.input.controls.MouseAxisTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
@@ -22,7 +25,6 @@ import com.jme3.scene.shape.Box;
 import java.util.HashMap;
 import java.util.logging.Logger;
 import mygame.terrain.BlockRegion;
-import mygame.terrain.GrassyRegion;
 import mygame.terrain.RegionType;
 import mygame.terrain.blocks.TerrainBlock;
 
@@ -40,6 +42,8 @@ public class Main extends SimpleApplication {
 
     static final int SECONDS_PER_DAY = 10;
     static final int BLOCK_REGION_SIZE = 25;
+    static final int ZOOM_FOV_MAX = 100;
+    static final int ZOOM_FOV_MIN = 5;
 
     boolean _hud_enabled = false;
 
@@ -51,6 +55,7 @@ public class Main extends SimpleApplication {
     
     public static void main(String[] args) {
         Main app = new Main();
+        app.setShowSettings(false);
         app.start();
     }
 
@@ -134,10 +139,15 @@ public class Main extends SimpleApplication {
         inputManager.addMapping("CameraEast", new KeyTrigger(KeyInput.KEY_A));
         inputManager.addMapping("CameraWest", new KeyTrigger(KeyInput.KEY_D));
         inputManager.addListener(cameraControlListener, new String[]{"CameraNorth", "CameraSouth", "CameraEast", "CameraWest"});
+        //Handle Zoom
+        inputManager.addMapping("ZoomIn", new MouseAxisTrigger(2, false));
+        inputManager.addMapping("ZoomOut", new MouseAxisTrigger(2, true));
+
 
         //Init Mouse Click listeners
         inputManager.addMapping("Click", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
         inputManager.addListener(mouseControlListener, new String[]{"Click"});
+        inputManager.addListener(mouseZoomControlListener, new String[]{"ZoomIn", "ZoomOut"});
     }
 
     private ActionListener mouseControlListener = new ActionListener() {
@@ -160,6 +170,45 @@ public class Main extends SimpleApplication {
           }
         }
     };
+
+    private AnalogListener mouseZoomControlListener = new AnalogListener() {
+        public void onAnalog(String name, float value, float tpf)
+        {
+            if (name.equals("ZoomIn"))
+            {
+                zoomCamera(value);
+            }
+            else if (name.equals("ZoomOut"))
+            {
+                zoomCamera(-value);
+            }
+        }
+    };
+
+    protected void zoomCamera(float value)
+    {
+        // derive fovY value
+        float h = cam.getFrustumTop();
+        float w = cam.getFrustumRight();
+        float aspect = w / h;
+
+        float near = cam.getFrustumNear();
+
+        float fovY = FastMath.atan(h / near)
+                  / (FastMath.DEG_TO_RAD * .5f);
+        fovY += value * 0.1f;
+
+        if (fovY < ZOOM_FOV_MAX && fovY > ZOOM_FOV_MIN)
+        {
+            h = FastMath.tan( fovY * FastMath.DEG_TO_RAD * .5f) * near;
+            w = h * aspect;
+
+            cam.setFrustumTop(h);
+            cam.setFrustumBottom(-h);
+            cam.setFrustumLeft(-w);
+            cam.setFrustumRight(w);
+        }
+    }
 
     private ActionListener menuControlListener = new ActionListener() {
         public void onAction(String name, boolean keyPressed, float tpf) {
