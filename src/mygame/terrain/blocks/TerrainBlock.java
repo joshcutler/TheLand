@@ -20,8 +20,8 @@ public abstract class TerrainBlock {
     protected static Box box;
     protected Geometry geometry;
     protected Material material;
-    private AssetManager _asset_manager;
-    private boolean _selected = false;
+    protected AssetManager _asset_manager;
+    protected boolean _selected = false;
 
     public TerrainBlock(AssetManager assetManager)
     {
@@ -51,7 +51,13 @@ public abstract class TerrainBlock {
         {
             return;
         }
-        Material highlight_material = new Material(_asset_manager, "Common/MatDefs/Misc/SolidColor.j3md");
+
+        Material highlight_material;
+        highlight_material = getAlphaMaterial();
+        if (highlight_material == null)
+        {
+            highlight_material =  new Material(_asset_manager, "Common/MatDefs/Misc/SolidColor.j3md");
+        }
         highlight_material.setColor("m_Color", ColorRGBA.Blue);
         geometry.setMaterial(highlight_material);
     }
@@ -68,8 +74,13 @@ public abstract class TerrainBlock {
     public void select()
     {
         _selected = true;
-        Material highlight_material = new Material(_asset_manager, "Common/MatDefs/Misc/SolidColor.j3md");
-        highlight_material.setColor("m_Color", ColorRGBA.Red);
+
+        Material highlight_material;
+        highlight_material = getAlphaMaterial();
+        if (highlight_material == null)
+        {
+            highlight_material =  new Material(_asset_manager, "Common/MatDefs/Misc/SolidColor.j3md");
+        }highlight_material.setColor("m_Color", ColorRGBA.Red);
         geometry.setMaterial(highlight_material);
     }
 
@@ -80,4 +91,5 @@ public abstract class TerrainBlock {
     }
 
     public abstract String getName();
+    public abstract Material getAlphaMaterial();
 }
