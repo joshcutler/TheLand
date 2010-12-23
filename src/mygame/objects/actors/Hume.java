@@ -3,12 +3,13 @@
  * and open the template in the editor.
  */
 
-package mygame.actors;
+package mygame.objects.actors;
+import mygame.objects.WorldObject;
 
 /**
  *
  * @author joshcutler
  */
-public class Hume {
+public class Hume implements WorldObject {
     
 }

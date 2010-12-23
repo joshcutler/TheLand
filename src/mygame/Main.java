@@ -19,6 +19,7 @@ import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.debug.Arrow;
 import com.jme3.scene.shape.Box;
+import mygame.objects.WorldObjectRenderer;
 import mygame.terrain.TerrainRenderer;
 import mygame.terrain.blocks.TerrainBlock;
 
@@ -29,6 +30,7 @@ import mygame.terrain.blocks.TerrainBlock;
 public class Main extends SimpleApplication {
 
     TerrainRenderer _terrain_renderer;
+    WorldObjectRenderer _world_object_renderer;
     int _day, _fps = 0;
     float _game_timer = 0;
 
@@ -45,6 +47,7 @@ public class Main extends SimpleApplication {
     {
         initCamera();
         initTerrain();
+        initWorldObjects();
         initControls();
         initHUD();
     }
@@ -91,7 +94,10 @@ public class Main extends SimpleApplication {
     private void initControls()
     {
         //Reset JME mappings
-        inputManager.clearMappings();
+        if (Config.DISABLE_DEFAULT_CAMERA)
+        {
+            inputManager.clearMappings();
+        }
         mouseInput.setCursorVisible(true);
 
         //Standard Controls
@@ -192,6 +198,11 @@ public class Main extends SimpleApplication {
     private void initTerrain()
     {
         _terrain_renderer = new TerrainRenderer(rootNode, cam, inputManager, assetManager);
+    }
+
+    private void initWorldObjects()
+    {
+        _world_object_renderer = new WorldObjectRenderer(rootNode, cam, inputManager, assetManager);
     }
 
     @Override
