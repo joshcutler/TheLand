@@ -34,8 +34,6 @@ public class Main extends SimpleApplication {
     int _day, _fps = 0;
     float _game_timer = 0;
 
-    BitmapText _hud_day;
-    
     public static void main(String[] args) {
         Main app = new Main();
         app.setShowSettings(false);
@@ -49,40 +47,7 @@ public class Main extends SimpleApplication {
         initTerrain();
         initWorldObjects();
         initControls();
-        initHUD();
-    }
-
-    private void initHUD()
-    {
-        if (Config.HUD_ENABLED)
-        {
-            //Remove stats
-            statsView.removeFromParent();
-
-            //Background
-            _hud_day = new BitmapText(guiFont, false);
-            Box background = new Box(Vector3f.ZERO, settings.getWidth(), 80, 0);
-            Geometry geometry = new Geometry("Box", background);
-            Material material = new Material(assetManager, "Common/MatDefs/Misc/SolidColor.j3md");
-            material.setColor("m_Color", ColorRGBA.DarkGray);
-            geometry.setMaterial(material);
-            guiNode.attachChild(geometry);
-
-            //Calendar
-            _hud_day.setSize(guiFont.getCharSet().getRenderedSize());      // font size
-            _hud_day.setColor(ColorRGBA.White);                             // font color
-            _hud_day.setText("Day: " + _day);             // the text
-            _hud_day.setLocalTranslation(settings.getWidth() - 100, _hud_day.getLineHeight(), 0); // position
-            guiNode.attachChild(_hud_day);
-        }
-    }
-
-    private void updateHUD()
-    {
-        if (Config.HUD_ENABLED)
-        {
-            _hud_day.setText("Day: " + _day);
-        }
+        HUD.initHUD(guiNode, statsView, guiFont, assetManager, settings);
     }
 
     private void initCamera()
@@ -225,8 +190,7 @@ public class Main extends SimpleApplication {
 
         _terrain_renderer.updateTerrain();
         _world_object_renderer.updateObjects(_new_day);
-        updateHUD();
-
+        HUD.updateHUD(_day);
     }
 
     @Override

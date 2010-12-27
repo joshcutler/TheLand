@@ -28,10 +28,10 @@ public class Tree implements Vegetation
 
     public Tree(String name, int x, int y, AssetManager _asset_manager)
     {
-        _mesh = new Cylinder(5, 5, 0.2f, 1, true);
+        _mesh = new Cylinder(10, 5, 0.2f, 1, true);
 
         _material =  new Material(_asset_manager, "Common/MatDefs/Misc/SolidColor.j3md");
-        _material.setColor("m_Color", ColorRGBA.Orange);
+        _material.setColor("m_Color", new ColorRGBA(0.15f, .28f, 0.13f, 1));
         _geometry = new Geometry(name, _mesh);
         _geometry.setMaterial(_material);
         _geometry.setLocalTranslation(new Vector3f(x, y, 1));

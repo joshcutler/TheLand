@@ -22,7 +22,7 @@ public class Config {
     //Camera settings
     public static final int ZOOM_FOV_MAX = 100;
     public static final int ZOOM_FOV_MIN = 5;
-    public static final boolean DISABLE_DEFAULT_CAMERA = false;
+    public static final boolean DISABLE_DEFAULT_CAMERA = true;
     //UI settings
     public static final boolean HUD_ENABLED = true;
 }
