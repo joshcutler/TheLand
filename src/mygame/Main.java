@@ -213,13 +213,20 @@ public class Main extends SimpleApplication {
         _fps = (int) timer.getFrameRate();
         
         //Compute the day
+        int _old_day_count = _day;
+        boolean _new_day = false;
         _day = ((int) Math.floor(_game_timer)) / Config.SECONDS_PER_DAY;
-        //_day = _fps;
+        if (_day > _old_day_count)
+        {
+            _new_day = true;
+        }
 
-        rootNode.updateGeometricState();
         _terrain_renderer.handleMousePicking();
+
         _terrain_renderer.updateTerrain();
+        _world_object_renderer.updateObjects(_new_day);
         updateHUD();
+
     }
 
     @Override
